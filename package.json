@@ -7,7 +7,10 @@
     "start:build": "tsc -w",
     "start:run": "nodemon dist/index.js",
     "start": "concurrently npm:start:*",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:push": "drizzle-kit push",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "db:migrate": "concurrently \"npm run drizzle:generate\" && \"npm run drizzle:migrate\""
   },
   "repository": {
     "type": "git",
