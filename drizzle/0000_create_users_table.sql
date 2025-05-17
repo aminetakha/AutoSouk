@@ -8,8 +8,6 @@ CREATE TABLE "users" (
 	"phone" varchar(20) NOT NULL,
 	"role" varchar(10) NOT NULL,
 	"city" varchar(100) NOT NULL,
-	"state" varchar(100) NOT NULL,
-	"zip_code" integer NOT NULL,
 	"image_url" varchar,
 	"created_at" date DEFAULT now() NOT NULL,
 	"updated_at" date DEFAULT now() NOT NULL,

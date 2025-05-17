@@ -13,8 +13,6 @@ export const usersTable = pgTable("users", {
     length: 10,
   }).notNull(),
   city: varchar({ length: 100 }).notNull(),
-  state: varchar({ length: 100 }).notNull(),
-  zipCode: integer("zip_code").notNull(),
   imageUrl: varchar("image_url"),
   createdAt: date("created_at").defaultNow().notNull(),
   updatedAt: date("updated_at").defaultNow().notNull(),

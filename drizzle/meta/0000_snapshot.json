@@ -1,5 +1,5 @@
 {
-  "id": "c9773c79-ce27-4546-940c-69e2d90ffd4d",
+  "id": "bf813918-947d-4f61-8e7e-a2b3f061fec1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -70,18 +70,6 @@
         "city": {
           "name": "city",
           "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "state": {
-          "name": "state",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "zip_code": {
-          "name": "zip_code",
-          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
