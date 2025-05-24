@@ -1,4 +1,6 @@
-import { date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { boolean, date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { emailVerificationTokensTable } from "./email_verification_tokens";
 
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -14,6 +16,11 @@ export const usersTable = pgTable("users", {
   }).notNull(),
   city: varchar({ length: 100 }).notNull(),
   imageUrl: varchar("image_url"),
+  isVerified: boolean("is_verified").default(false),
   createdAt: date("created_at").defaultNow().notNull(),
   updatedAt: date("updated_at").defaultNow().notNull(),
 });
+
+export const userRelations = relations(usersTable, ({ one }) => ({
+  emailVerificationTokens: one(emailVerificationTokensTable),
+}));

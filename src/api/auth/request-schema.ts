@@ -49,3 +49,12 @@ export const registerSchema = z.object({
     })
     .min(3, { message: "City should have at least three caracters" }),
 });
+
+export const resendTokenSchema = z.object({
+  email: z
+    .string({
+      required_error: "Email is required",
+      invalid_type_error: "Email must be a text",
+    })
+    .email({ message: "Invalid email address" }),
+});
