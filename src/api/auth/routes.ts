@@ -138,8 +138,8 @@ authRouter.post("/re-verify", async (req, res) => {
   if (user.length === 0) {
     throw new NotFoundError("No account was found with this email");
   }
-  if(user[0].isVerified){
-    throw new BadRequestError('User is already verified')
+  if (user[0].isVerified) {
+    throw new BadRequestError("User is already verified");
   }
 
   const expiresAt = new Date(Date.now() + 1000 * 60 * tokenExpirationMinutes);

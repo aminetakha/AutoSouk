@@ -14,7 +14,7 @@ export const emailVerificationTokensTable = pgTable(
     userId: integer("user_id")
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
-    token: varchar().notNull(),
+    token: varchar().notNull().unique(),
     expiresAt: timestamp("expires_at", {
       withTimezone: true,
       mode: "date",
