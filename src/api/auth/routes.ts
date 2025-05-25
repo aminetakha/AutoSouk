@@ -1,13 +1,14 @@
 import fs from "fs/promises";
 import path from "path";
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import ejs from "ejs";
 import { db } from "../../db";
 import { usersTable } from "../../db/schema/user";
 import { generateToken, sendMail } from "../../utils/functions";
 import {
   loginSchema,
+  refreshTokenSchema,
   registerSchema,
   resendTokenSchema,
 } from "./request-schema";
@@ -20,6 +21,7 @@ import {
   generateJWT,
   hashPassword,
   sanitizeUser,
+  verifyJWT,
   verifyPassword,
 } from "./services";
 
@@ -203,11 +205,11 @@ authRouter.post("/login", async (req, res) => {
   }
 
   const accessToken = await generateJWT(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, issuedAt: new Date().getTime() },
     Number(process.env.JWT_ACCESS_TOKEN_EXPIRATION_SECONDS!)
   );
   const refreshToken = await generateJWT(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, issuedAt: new Date().getTime() },
     Number(process.env.JWT_REFRESH_TOKEN_EXPIRATION_SECONDS!)
   );
   await db
@@ -217,6 +219,84 @@ authRouter.post("/login", async (req, res) => {
     refreshToken,
   };
   res.status(200).json({ accessToken, user: sanitizeUser(foundUser[0]) });
+});
+
+authRouter.post("/refresh-token", async (req, res) => {
+  const validateResult = refreshTokenSchema.safeParse(req.session);
+  if (validateResult.error) {
+    throw new RequestValidationError(validateResult.error.errors);
+  }
+  const token = validateResult.data.refreshToken;
+  const decoded = await verifyJWT<{ id: number; email: string }>(token);
+
+  // re-use detection
+  const usedToken = await db
+    .select()
+    .from(refreshTokensTable)
+    .where(
+      and(
+        ne(refreshTokensTable.currentToken, token),
+        eq(refreshTokensTable.lastToken, token)
+      )
+    );
+  if (usedToken.length > 0) {
+    req.session = undefined;
+    await db
+      .delete(refreshTokensTable)
+      .where(eq(refreshTokensTable.userId, decoded.id));
+    throw new BadRequestError("Unauthorized");
+  }
+
+  const userToken = await db
+    .select()
+    .from(refreshTokensTable)
+    .where(
+      and(
+        eq(refreshTokensTable.currentToken, token),
+        eq(refreshTokensTable.userId, decoded.id)
+      )
+    );
+  if (userToken.length === 0) {
+    req.session = undefined;
+    await db
+      .delete(refreshTokensTable)
+      .where(eq(refreshTokensTable.userId, decoded.id));
+    throw new BadRequestError("Unauthorized");
+  }
+  if (userToken.length > 0) {
+    const accessToken = await generateJWT(
+      { id: decoded.id, email: decoded.email, issuedAt: new Date().getTime() },
+      Number(process.env.JWT_ACCESS_TOKEN_EXPIRATION_SECONDS!)
+    );
+    const refreshToken = await generateJWT(
+      { id: decoded.id, email: decoded.email, issuedAt: new Date().getTime() },
+      Number(process.env.JWT_REFRESH_TOKEN_EXPIRATION_SECONDS!)
+    );
+    await db
+      .update(refreshTokensTable)
+      .set({
+        currentToken: refreshToken,
+        lastToken: token,
+      })
+      .where(
+        and(
+          eq(refreshTokensTable.currentToken, token),
+          eq(refreshTokensTable.userId, decoded.id)
+        )
+      );
+    const user = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, decoded.id));
+    req.session = {
+      refreshToken,
+    };
+    res.status(200).json({ accessToken, user: sanitizeUser(user[0]) });
+    return;
+  }
+
+  req.session = undefined;
+  throw new BadRequestError("An error occurred");
 });
 
 export default authRouter;

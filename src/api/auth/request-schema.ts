@@ -81,3 +81,10 @@ export const loginSchema = z.object({
       }
     ),
 });
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string({
+    required_error: "Invalid request",
+    invalid_type_error: "Invalid request",
+  }),
+});

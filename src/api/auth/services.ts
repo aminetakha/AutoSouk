@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { promisify } from "util";
-import { sign } from "jsonwebtoken";
+import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { generateToken } from "../../utils/functions";
 import { usersTable } from "../../db/schema/user";
 
@@ -37,9 +37,20 @@ export const generateJWT = async (
   return new Promise<string | undefined>((resolve, reject) => {
     sign(payload, process.env.JWT_SECRET!, { expiresIn }, (err, encoded) => {
       if (err) {
-        reject(err);
+        return reject(err);
       }
       resolve(encoded);
+    });
+  });
+};
+
+export const verifyJWT = <T>(token: string): Promise<JwtPayload & T> => {
+  return new Promise((resolve, reject) => {
+    verify(token, process.env.JWT_SECRET!, (err, decoded) => {
+      if (err || !decoded) {
+        return reject(err);
+      }
+      resolve(decoded as JwtPayload & T);
     });
   });
 };
