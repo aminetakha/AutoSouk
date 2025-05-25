@@ -5,12 +5,23 @@ import { eq } from "drizzle-orm";
 import ejs from "ejs";
 import { db } from "../../db";
 import { usersTable } from "../../db/schema/user";
-import { generateToken, hashPassword, sendMail } from "../../utils/functions";
-import { registerSchema, resendTokenSchema } from "./request-schema";
+import { generateToken, sendMail } from "../../utils/functions";
+import {
+  loginSchema,
+  registerSchema,
+  resendTokenSchema,
+} from "./request-schema";
 import { RequestValidationError } from "../../errors/request-validation-error";
 import { BadRequestError } from "../../errors/bad-request-error";
 import { emailVerificationTokensTable } from "../../db/schema/email_verification_tokens";
 import { NotFoundError } from "../../errors/not-found-error";
+import { refreshTokensTable } from "../../db/schema/refresh_tokens";
+import {
+  generateJWT,
+  hashPassword,
+  sanitizeUser,
+  verifyPassword,
+} from "./services";
 
 const tokenExpirationMinutes = 5;
 
@@ -168,8 +179,44 @@ authRouter.post("/re-verify", async (req, res) => {
   res.status(200).json({ message: "A verification email has been sent" });
 });
 
-authRouter.post("/login", (req, res) => {
-  res.send("Login handler");
+authRouter.post("/login", async (req, res) => {
+  const validateResult = loginSchema.safeParse(req.body);
+  if (validateResult.error) {
+    throw new RequestValidationError(validateResult.error.errors);
+  }
+  const { email, password } = validateResult.data;
+  const foundUser = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .limit(1);
+
+  if (foundUser.length === 0) {
+    throw new NotFoundError("Email or password is not correct");
+  }
+
+  const { password: storedPassword, salt, ...user } = foundUser[0];
+  const isPasswordValid = await verifyPassword(password, storedPassword, salt);
+
+  if (!isPasswordValid) {
+    throw new NotFoundError("Email or password is not correct");
+  }
+
+  const accessToken = await generateJWT(
+    { id: user.id, email: user.email },
+    Number(process.env.JWT_ACCESS_TOKEN_EXPIRATION_SECONDS!)
+  );
+  const refreshToken = await generateJWT(
+    { id: user.id, email: user.email },
+    Number(process.env.JWT_REFRESH_TOKEN_EXPIRATION_SECONDS!)
+  );
+  await db
+    .insert(refreshTokensTable)
+    .values({ userId: user.id, currentToken: refreshToken });
+  req.session = {
+    refreshToken,
+  };
+  res.status(200).json({ accessToken, user: sanitizeUser(foundUser[0]) });
 });
 
 export default authRouter;

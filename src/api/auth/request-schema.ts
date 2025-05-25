@@ -58,3 +58,26 @@ export const resendTokenSchema = z.object({
     })
     .email({ message: "Invalid email address" }),
 });
+
+export const loginSchema = z.object({
+  email: z
+    .string({
+      required_error: "Email is required",
+      invalid_type_error: "Email must be a text",
+    })
+    .email({ message: "Invalid email address" }),
+  password: z
+    .string({
+      required_error: "Password is required",
+      invalid_type_error: "Password must be a text",
+    })
+    .regex(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#,;()$%^&*-/.])(?=.{8,})"
+      ),
+      {
+        message:
+          "Password must have more than 8 characters with lower case, upper case, numbers, and symbols",
+      }
+    ),
+});

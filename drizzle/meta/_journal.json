@@ -29,6 +29,13 @@
       "when": 1748085183207,
       "tag": "0003_add_unique_to_email_verification_table",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748118399657,
+      "tag": "0004_added_refresh_tokens_table",
+      "breakpoints": true
     }
   ]
 }
