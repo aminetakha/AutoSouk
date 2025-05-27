@@ -36,6 +36,13 @@
       "when": 1748118399657,
       "tag": "0004_added_refresh_tokens_table",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1748372014286,
+      "tag": "0005_add_forgot_password_tokens_table",
+      "breakpoints": true
     }
   ]
 }

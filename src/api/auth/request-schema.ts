@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { string, z } from "zod";
 
 export const registerSchema = z.object({
   firstName: z
@@ -87,4 +87,34 @@ export const refreshTokenSchema = z.object({
     required_error: "Invalid request",
     invalid_type_error: "Invalid request",
   }),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string({
+      required_error: "Email is required",
+      invalid_type_error: "Email must be a text",
+    })
+    .email({ message: "Invalid email address" }),
+});
+
+export const updatePasswordSchema = z.object({
+  token: string({
+    required_error: "Token is required",
+    invalid_type_error: "Token must be a text",
+  }),
+  password: z
+    .string({
+      required_error: "Password is required",
+      invalid_type_error: "Password must be a text",
+    })
+    .regex(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#,;()$%^&*-/.])(?=.{8,})"
+      ),
+      {
+        message:
+          "Password must have more than 8 characters with lower case, upper case, numbers, and symbols",
+      }
+    ),
 });

@@ -7,10 +7,12 @@ import { db } from "../../db";
 import { usersTable } from "../../db/schema/user";
 import { generateToken, sendMail } from "../../utils/functions";
 import {
+  forgotPasswordSchema,
   loginSchema,
   refreshTokenSchema,
   registerSchema,
   resendTokenSchema,
+  updatePasswordSchema,
 } from "./request-schema";
 import { RequestValidationError } from "../../errors/request-validation-error";
 import { BadRequestError } from "../../errors/bad-request-error";
@@ -24,6 +26,7 @@ import {
   verifyJWT,
   verifyPassword,
 } from "./services";
+import { forgotPasswordTokensTable } from "../../db/schema/forget_password_tokens";
 
 const tokenExpirationMinutes = 5;
 
@@ -297,6 +300,118 @@ authRouter.post("/refresh-token", async (req, res) => {
 
   req.session = undefined;
   throw new BadRequestError("An error occurred");
+});
+
+authRouter.post("/forgot-password", async (req, res) => {
+  const validateResult = forgotPasswordSchema.safeParse(req.body);
+  if (!validateResult.success) {
+    throw new RequestValidationError(validateResult.error.errors);
+  }
+  const { email } = validateResult.data;
+  const foundUser = await db
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      firstName: usersTable.firstName,
+    })
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+
+  if (foundUser.length === 0) {
+    throw new NotFoundError("No account was registered with this email");
+  }
+  const token = generateToken();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * tokenExpirationMinutes);
+
+  await db.insert(forgotPasswordTokensTable).values({
+    userId: foundUser[0].id,
+    token,
+    expiresAt,
+  });
+
+  const forgotPasswordTemplate = await fs.readFile(
+    path.resolve(__dirname, "../../templates/mail/forgotPassword.ejs"),
+    { encoding: "utf8" }
+  );
+  const forgotPasswordHTML = ejs.render(forgotPasswordTemplate, {
+    firstName: foundUser[0].firstName,
+    forgotPasswordUrl: `http://localhost:8080/api/auth/forgot-password?token=${token}&email=${email}`,
+    expiration: `${tokenExpirationMinutes} minutes`,
+  });
+  await sendMail({
+    to: email,
+    subject: "Password reset request for your account",
+    html: forgotPasswordHTML,
+  });
+
+  res.status(200).json({
+    message: `Password reset email sent successfully. The reset link expires in ${tokenExpirationMinutes} minutes`,
+  });
+});
+
+authRouter.get("/forgot-password", async (req, res) => {
+  const { token, email } = req.query;
+  if (!token) {
+    throw new BadRequestError("Token is required");
+  }
+  const result = await db
+    .select()
+    .from(forgotPasswordTokensTable)
+    .where(eq(forgotPasswordTokensTable.token, token as string));
+  if (result.length === 0) {
+    throw new BadRequestError("Invalid token");
+  }
+  const difference =
+    new Date(result[0].expiresAt).getTime() - new Date().getTime();
+
+  if (difference <= 0) {
+    await db
+      .delete(forgotPasswordTokensTable)
+      .where(eq(forgotPasswordTokensTable.token, token as string));
+    throw new BadRequestError("Link has been expired");
+  }
+  const user = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, result[0].userId))
+    .limit(1);
+  if (user.length === 0) {
+    throw new NotFoundError();
+  }
+  if (user[0].email !== (email as string)) {
+    throw new BadRequestError("Invalid token");
+  }
+
+  res.redirect(301, `http://localhost:3000/reset-password?token=${token}`);
+});
+
+authRouter.put("/forgot-password", async (req, res) => {
+  const validateResult = updatePasswordSchema.safeParse(req.body);
+  if (!validateResult.success) {
+    throw new RequestValidationError(validateResult.error.errors);
+  }
+  const { password, token } = validateResult.data;
+  const user = await db
+    .select()
+    .from(forgotPasswordTokensTable)
+    .where(eq(forgotPasswordTokensTable.token, token));
+  if (user.length === 0) {
+    throw new BadRequestError("Invalid token");
+  }
+  const { hashedPassword, salt } = await hashPassword(password);
+  const result = await db
+    .update(usersTable)
+    .set({ password: hashedPassword, salt })
+    .where(eq(usersTable.id, user[0].userId));
+  if (result.rowCount === 0) {
+    throw new BadRequestError(
+      "Could not update the password! Please try again"
+    );
+  }
+  await db
+    .delete(forgotPasswordTokensTable)
+    .where(eq(forgotPasswordTokensTable.userId, user[0].id));
+  res.status(200).json({ message: "Your password was updated successfully" });
 });
 
 export default authRouter;
