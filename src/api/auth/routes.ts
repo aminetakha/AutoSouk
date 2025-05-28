@@ -12,6 +12,7 @@ import {
   refreshTokenSchema,
   registerSchema,
   resendTokenSchema,
+  resetPasswordSchema,
   updatePasswordSchema,
 } from "./request-schema";
 import { RequestValidationError } from "../../errors/request-validation-error";
@@ -411,6 +412,45 @@ authRouter.put("/forgot-password", async (req, res) => {
   await db
     .delete(forgotPasswordTokensTable)
     .where(eq(forgotPasswordTokensTable.userId, user[0].id));
+  res.status(200).json({ message: "Your password was updated successfully" });
+});
+
+authRouter.put("/reset-password", async (req, res) => {
+  const validateResult = resetPasswordSchema.safeParse(req.body);
+  if (!validateResult.success) {
+    throw new RequestValidationError(validateResult.error.errors);
+  }
+  const { password, confirmPassword, oldPassword, email } = validateResult.data;
+  if (password !== confirmPassword) {
+    throw new BadRequestError(
+      "Password and confirm password should be the same"
+    );
+  }
+  const user = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+  if (user.length === 0) {
+    throw new BadRequestError("User not found");
+  }
+  const isPasswordValid = await verifyPassword(
+    oldPassword,
+    user[0].password,
+    user[0].salt
+  );
+  if (!isPasswordValid) {
+    throw new BadRequestError("Invalid password");
+  }
+  const { hashedPassword, salt } = await hashPassword(password);
+  const result = await db
+    .update(usersTable)
+    .set({ password: hashedPassword, salt })
+    .where(eq(usersTable.email, email));
+  if (result.rowCount === 0) {
+    throw new BadRequestError(
+      "Could not update the password! Please try again"
+    );
+  }
   res.status(200).json({ message: "Your password was updated successfully" });
 });
 

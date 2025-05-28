@@ -118,3 +118,54 @@ export const updatePasswordSchema = z.object({
       }
     ),
 });
+
+export const resetPasswordSchema = z.object({
+  email: z
+    .string({
+      required_error: "Email is required",
+      invalid_type_error: "Email must be a text",
+    })
+    .email({ message: "Invalid email address" }),
+  oldPassword: z
+    .string({
+      required_error: "Old password is required",
+      invalid_type_error: "Old password must be a text",
+    })
+    .regex(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#,;()$%^&*-/.])(?=.{8,})"
+      ),
+      {
+        message:
+          "Password must have more than 8 characters with lower case, upper case, numbers, and symbols",
+      }
+    ),
+  password: z
+    .string({
+      required_error: "Password is required",
+      invalid_type_error: "Password must be a text",
+    })
+    .regex(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#,;()$%^&*-/.])(?=.{8,})"
+      ),
+      {
+        message:
+          "Password must have more than 8 characters with lower case, upper case, numbers, and symbols",
+      }
+    ),
+  confirmPassword: z
+    .string({
+      required_error: "Confirm password is required",
+      invalid_type_error: "Confirm password must be a text",
+    })
+    .regex(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#,;()$%^&*-/.])(?=.{8,})"
+      ),
+      {
+        message:
+          "Password must have more than 8 characters with lower case, upper case, numbers, and symbols",
+      }
+    ),
+});
