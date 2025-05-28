@@ -454,4 +454,9 @@ authRouter.put("/reset-password", async (req, res) => {
   res.status(200).json({ message: "Your password was updated successfully" });
 });
 
+authRouter.post("/logout", (req, res) => {
+  req.session = undefined;
+  res.status(200).json({ message: "Success" });
+});
+
 export default authRouter;
