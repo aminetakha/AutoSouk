@@ -331,7 +331,7 @@ authRouter.post("/forgot-password", async (req, res) => {
   });
 
   const forgotPasswordTemplate = await fs.readFile(
-    path.resolve(__dirname, "../../templates/mail/forgotPassword.ejs"),
+    path.resolve(__dirname, "../../templates/mail/forgot-password.ejs"),
     { encoding: "utf8" }
   );
   const forgotPasswordHTML = ejs.render(forgotPasswordTemplate, {

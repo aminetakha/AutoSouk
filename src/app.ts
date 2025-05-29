@@ -3,6 +3,7 @@ import cookieSession from "cookie-session";
 import router from "./routes";
 import errorHandler from "./middlewares/error-handler";
 import { NotFoundError } from "./errors/not-found-error";
+import currentUser from "./middlewares/current-user";
 
 export const app = express();
 
@@ -16,6 +17,7 @@ app.use(
     secure: process.env.NODE_ENV !== "development",
   })
 );
+app.use(currentUser);
 app.use(router);
 
 // catch all non existante routes and send 404

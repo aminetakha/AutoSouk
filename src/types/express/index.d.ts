@@ -9,6 +9,10 @@ declare global {
           })
         | null
         | undefined;
+      currentUser?: {
+        id: number;
+        email: string;
+      };
     }
   }
 }
