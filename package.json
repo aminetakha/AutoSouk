@@ -7,7 +7,7 @@
     "start:build": "tsc",
     "start:copy": "copyfiles -u 1 'src/**/*.{json,html,css,png,jpg,svg,ejs}' dist/",
     "start:run": "node dist/index.js",
-    "start": "concurrently npm:start:*",
+    "start": "concurrently \"npm run start:build\" && \"npm run start:copy\" && \"npm run start:run\"",
     "dev": "tsx watch src/index.ts",
     "db:migrate": "drizzle-kit migrate",
     "test": "docker compose -f ./docker-compose-test.yml up -d && jest --watchAll -no-cache",
