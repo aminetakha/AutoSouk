@@ -82,7 +82,7 @@ authRouter.post("/register", async (req, res) => {
   );
   const registerHTML = ejs.render(registerTemplate, {
     firstName,
-    verificationUrl: `http://localhost:8080/api/auth/verify?token=${token}`,
+    verificationUrl: `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`,
     expiration: `${tokenExpirationMinutes} minutes`,
   });
   await sendMail({
@@ -174,7 +174,7 @@ authRouter.post("/re-verify", async (req, res) => {
   );
   const registerHTML = ejs.render(registerTemplate, {
     firstName: user[0].firstName,
-    verificationUrl: `http://localhost:8080/api/auth/verify?token=${token}`,
+    verificationUrl: `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`,
     expiration: `${tokenExpirationMinutes} minutes`,
   });
   await sendMail({
@@ -336,7 +336,7 @@ authRouter.post("/forgot-password", async (req, res) => {
   );
   const forgotPasswordHTML = ejs.render(forgotPasswordTemplate, {
     firstName: foundUser[0].firstName,
-    forgotPasswordUrl: `http://localhost:8080/api/auth/forgot-password?token=${token}&email=${email}`,
+    forgotPasswordUrl: `${process.env.BACKEND_URL}/api/auth/forgot-password?token=${token}&email=${email}`,
     expiration: `${tokenExpirationMinutes} minutes`,
   });
   await sendMail({
