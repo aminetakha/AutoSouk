@@ -1,11 +1,12 @@
-import fs from "fs/promises";
-import path from "path";
 import { Router } from "express";
 import { and, eq, ne } from "drizzle-orm";
-import ejs from "ejs";
 import { db } from "../../db";
 import { usersTable } from "../../db/schema/user";
-import { generateToken, sendMail } from "../../utils/functions";
+import {
+  generateToken,
+  readTemplateFile,
+  sendMail,
+} from "../../utils/functions";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -30,7 +31,6 @@ import {
 import { forgotPasswordTokensTable } from "../../db/schema/forget_password_tokens";
 
 const tokenExpirationMinutes = 5;
-
 const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
@@ -38,7 +38,6 @@ authRouter.post("/register", async (req, res) => {
   if (validationResult.error) {
     throw new RequestValidationError(validationResult.error.errors);
   }
-
   const { email, password, city, firstName, lastName, phone, userType } =
     validationResult.data;
   const found = await db
@@ -76,11 +75,7 @@ authRouter.post("/register", async (req, res) => {
     expiresAt,
   });
 
-  const registerTemplate = await fs.readFile(
-    path.resolve(__dirname, "../../templates/mail/register.ejs"),
-    { encoding: "utf8" }
-  );
-  const registerHTML = ejs.render(registerTemplate, {
+  const registerHTML = await readTemplateFile("register.ejs", {
     firstName,
     verificationUrl: `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`,
     expiration: `${tokenExpirationMinutes} minutes`,
@@ -168,11 +163,7 @@ authRouter.post("/re-verify", async (req, res) => {
     expiresAt,
   });
 
-  const registerTemplate = await fs.readFile(
-    path.resolve(__dirname, "../../templates/mail/register.ejs"),
-    { encoding: "utf8" }
-  );
-  const registerHTML = ejs.render(registerTemplate, {
+  const registerHTML = await readTemplateFile("register.ejs", {
     firstName: user[0].firstName,
     verificationUrl: `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`,
     expiration: `${tokenExpirationMinutes} minutes`,
@@ -330,11 +321,7 @@ authRouter.post("/forgot-password", async (req, res) => {
     expiresAt,
   });
 
-  const forgotPasswordTemplate = await fs.readFile(
-    path.resolve(__dirname, "../../templates/mail/forgot-password.ejs"),
-    { encoding: "utf8" }
-  );
-  const forgotPasswordHTML = ejs.render(forgotPasswordTemplate, {
+  const forgotPasswordHTML = await readTemplateFile("forgot-password.ejs", {
     firstName: foundUser[0].firstName,
     forgotPasswordUrl: `${process.env.BACKEND_URL}/api/auth/forgot-password?token=${token}&email=${email}`,
     expiration: `${tokenExpirationMinutes} minutes`,

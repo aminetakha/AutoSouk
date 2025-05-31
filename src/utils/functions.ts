@@ -1,4 +1,7 @@
 import crypto from "crypto";
+import fs from "fs/promises";
+import path from "path";
+import ejs from "ejs";
 import nodemailer from "nodemailer";
 import Mail, { Attachment } from "nodemailer/lib/mailer";
 
@@ -46,4 +49,16 @@ export const sendMail = async (options: {
   }
 
   await transporter.sendMail(mailOptions);
+};
+
+export const readTemplateFile = async (
+  fileName: string,
+  data: Record<string, unknown>
+): Promise<string> => {
+  const template = await fs.readFile(
+    path.resolve(__dirname, `../templates/${fileName}`),
+    { encoding: "utf8" }
+  );
+  const html = ejs.render(template, data);
+  return html;
 };

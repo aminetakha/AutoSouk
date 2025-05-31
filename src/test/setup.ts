@@ -1,13 +1,19 @@
 import path from "path";
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool } from "pg";
+import { db, pool } from "../db";
 
-const pool = new Pool({
-  connectionString: process.env.TEST_DB_CONNECTION_STRING,
+const readTemplateFileMock = jest.fn().mockResolvedValue("<html></html>");
+
+jest.mock("../utils/functions", () => {
+  const originalModule = jest.requireActual("../utils/functions");
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendMail: jest.fn(),
+    readTemplateFile: readTemplateFileMock,
+  };
 });
-const db = drizzle(pool);
 
 beforeAll(async () => {
   await migrate(db, {
@@ -15,7 +21,10 @@ beforeAll(async () => {
   });
 });
 
-beforeEach(async () => {
+afterEach(async () => {
+  jest.resetAllMocks();
+  readTemplateFileMock.mockResolvedValue("<html></html>");
+
   // clear all data from tables in public schema
   await db.execute(`
         DO $$ DECLARE
