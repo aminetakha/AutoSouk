@@ -9,6 +9,12 @@ it("should return 201 on successful signup", async () => {
   expect(statusCode).toBe(201);
 });
 
+it("should fail when trying to signup with the same email", async () => {
+  await signupUser();
+  const { statusCode } = await signupUser();
+  expect(statusCode).toBe(400);
+});
+
 it("should properly provide data to sendMail function on signup", async () => {
   const { formData, statusCode } = await signupUser();
   const mailCall = (sendMail as jest.Mock).mock.calls[0][0];

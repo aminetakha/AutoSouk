@@ -121,7 +121,7 @@ authRouter.get("/verify", async (req, res) => {
     .where(eq(usersTable.id, response[0].userId))
     .limit(1);
   if (user.length === 0) {
-    throw new NotFoundError();
+    throw new NotAuthorizedError();
   }
   if (user[0].isVerified) {
     throw new BadRequestError("User is already verified");
@@ -191,6 +191,10 @@ authRouter.post("/login", async (req, res) => {
 
   if (foundUser.length === 0) {
     throw new NotAuthorizedError("Email or password is not correct");
+  }
+
+  if (!foundUser[0].isVerified) {
+    throw new NotAuthorizedError("Your account is not verified");
   }
 
   const { password: storedPassword, salt, ...user } = foundUser[0];

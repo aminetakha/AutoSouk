@@ -1,9 +1,9 @@
 import request from "supertest";
-import { signupUser } from "../../../test/helpers";
+import { signupUser, signupUserWithVerification } from "../../../test/helpers";
 import { app } from "../../../app";
 
 it("should return status code of 200 and response body on valid login", async () => {
-  const { formData } = await signupUser();
+  const { formData } = await signupUserWithVerification();
   const loginResponse = await request(app)
     .post("/api/auth/login")
     .send({
@@ -18,7 +18,7 @@ it("should return status code of 200 and response body on valid login", async ()
     email: formData.email,
     city: formData.city,
     imageUrl: null,
-    isVerified: false,
+    isVerified: true,
     phone: formData.phone,
     role: formData.userType,
   });
