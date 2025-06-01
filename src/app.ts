@@ -13,8 +13,8 @@ app.use(
   cookieSession({
     secret: process.env.COOKIE_SECRET,
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
-    secure: process.env.NODE_ENV !== "development",
+    sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+    secure: process.env.NODE_ENV === "production",
   })
 );
 app.use(currentUser);

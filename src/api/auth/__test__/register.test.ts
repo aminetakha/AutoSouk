@@ -2,52 +2,26 @@ import url from "url";
 import request from "supertest";
 import { app } from "../../../app";
 import { readTemplateFile, sendMail } from "../../../utils/functions";
+import { signupUser } from "../../../test/helpers";
 
 it("should return 201 on successful signup", async () => {
-  const formData = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "user@example.com",
-    password: "USEr_@@852852",
-    phone: "+212685412593",
-    userType: "buyer",
-    city: "Tangier",
-  };
-  const response = await request(app).post("/api/auth/register").send(formData);
-  expect(response.statusCode).toBe(201);
+  const { statusCode } = await signupUser();
+  expect(statusCode).toBe(201);
 });
 
 it("should properly provide data to sendMail function on signup", async () => {
-  const formData = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "user@example.com",
-    password: "USEr_@@852852",
-    phone: "+212685412593",
-    userType: "buyer",
-    city: "Tangier",
-  };
-  const response = await request(app).post("/api/auth/register").send(formData);
+  const { formData, statusCode } = await signupUser();
+  const mailCall = (sendMail as jest.Mock).mock.calls[0][0];
 
   expect(sendMail).toHaveBeenCalledTimes(1);
-  const mailCall = (sendMail as jest.Mock).mock.calls[0][0];
   expect(mailCall.to).toBe(formData.email);
   expect(mailCall.html).toBeDefined();
   expect(mailCall.subject).toBe("Verify Account");
-  expect(response.statusCode).toBe(201);
+  expect(statusCode).toBe(201);
 });
 
 it("should properly provide data to register template on signup", async () => {
-  const formData = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "user@example.com",
-    password: "USEr_@@852852",
-    phone: "+212685412593",
-    userType: "buyer",
-    city: "Tangier",
-  };
-  const response = await request(app).post("/api/auth/register").send(formData);
+  const { formData, statusCode } = await signupUser();
   const templateOptions = (readTemplateFile as jest.Mock).mock.calls[0];
   const { verificationUrl, firstName, expiration } = templateOptions[1];
   const parsedUrl = url.parse(verificationUrl, true, true);
@@ -61,8 +35,7 @@ it("should properly provide data to register template on signup", async () => {
   );
   expect(parsedUrl.pathname).toBe("/api/auth/verify");
   expect(parsedUrl.query.token).toBeDefined();
-
-  expect(response.statusCode).toBe(201);
+  expect(statusCode).toBe(201);
 });
 
 it("should return 400 when not sending body", () => {
@@ -110,16 +83,7 @@ it("should return 400 when inappropriate password was provided", async () => {
 });
 
 it("should fail when register with the same email", async () => {
-  const formData = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "user@example.com",
-    password: "USEr_@@852852",
-    phone: "+212685412593",
-    userType: "buyer",
-    city: "Tangier",
-  };
-  await request(app).post("/api/auth/register").send(formData);
-  const response = await request(app).post("/api/auth/register").send(formData);
-  expect(response.statusCode).toBe(400);
+  await signupUser();
+  const { statusCode } = await signupUser();
+  expect(statusCode).toBe(400);
 });
