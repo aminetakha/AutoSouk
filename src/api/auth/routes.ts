@@ -29,6 +29,7 @@ import {
   verifyPassword,
 } from "./services";
 import { forgotPasswordTokensTable } from "../../db/schema/forget_password_tokens";
+import { NotAuthorizedError } from "../../errors/not-authorized-error";
 
 const tokenExpirationMinutes = 5;
 const authRouter = Router();
@@ -189,14 +190,14 @@ authRouter.post("/login", async (req, res) => {
     .limit(1);
 
   if (foundUser.length === 0) {
-    throw new NotFoundError("Email or password is not correct");
+    throw new NotAuthorizedError("Email or password is not correct");
   }
 
   const { password: storedPassword, salt, ...user } = foundUser[0];
   const isPasswordValid = await verifyPassword(password, storedPassword, salt);
 
   if (!isPasswordValid) {
-    throw new NotFoundError("Email or password is not correct");
+    throw new NotAuthorizedError("Email or password is not correct");
   }
 
   const accessToken = await generateJWT(
