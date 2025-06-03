@@ -375,7 +375,7 @@ authRouter.get("/forgot-password", async (req, res) => {
     throw new BadRequestError("Invalid token");
   }
 
-  res.redirect(301, `http://localhost:3000/reset-password?token=${token}`);
+  res.redirect(301, `${process.env.CLIENT_URL}/reset-password?token=${token}`);
 });
 
 authRouter.put("/forgot-password", async (req, res) => {
