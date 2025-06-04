@@ -100,7 +100,7 @@ it("should redirect if request is valid", async () => {
   );
 });
 
-it("should fail if token expires", async () => {
+it("should fail if token is expired", async () => {
   const { formData } = await signupUserWithVerification();
   (readTemplateFile as jest.Mock).mockReset();
   await request(app)
@@ -140,4 +140,47 @@ it("should fail if token expires", async () => {
   expect(statusCode).toBe(400);
   expect(body.errors[0].message).toBe("Link has been expired");
   jest.useRealTimers();
+});
+
+it("should fail if the request body is not valid when updating the password", async () => {
+  const { body, statusCode } = await request(app)
+    .put("/api/auth/forgot-password")
+    .send({});
+  expect(statusCode).toBe(400);
+  expect(body.errors).toHaveLength(2);
+});
+
+it("should fail if the new password is not valid", async () => {
+  const { body, statusCode } = await request(app)
+    .put("/api/auth/forgot-password")
+    .send({ token: "a token", password: "weak_paa" });
+  expect(statusCode).toBe(400);
+  expect(body.errors).toHaveLength(1);
+  expect(body.errors[0].field).toBe("password");
+});
+
+it("should fail if the token is invalid", async () => {
+  const { body, statusCode } = await request(app)
+    .put("/api/auth/forgot-password")
+    .send({ token: "invalid token", password: "Pass@@852__" });
+  expect(statusCode).toBe(400);
+  expect(body.errors[0].message).toBe("Invalid token");
+});
+
+it("should update the password", async () => {
+  const { formData } = await signupUserWithVerification();
+  (readTemplateFile as jest.Mock).mockReset();
+  await request(app)
+    .post("/api/auth/forgot-password")
+    .send({ email: formData.email });
+
+  const { forgotPasswordUrl } = (readTemplateFile as jest.Mock).mock
+    .calls[0][1];
+  const parsedUrl = url.parse(forgotPasswordUrl, true, true);
+  const token = parsedUrl.query.token;
+
+  return request(app)
+    .put("/api/auth/forgot-password")
+    .send({ token, password: "PIOScdcMkni_@sc568" })
+    .expect(200);
 });
