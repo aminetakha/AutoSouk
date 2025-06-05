@@ -222,6 +222,7 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/refresh-token", async (req, res) => {
+  console.log("session", req.session);
   const validateResult = refreshTokenSchema.safeParse(req.session);
   if (validateResult.error) {
     throw new RequestValidationError(validateResult.error.errors);
@@ -244,7 +245,7 @@ authRouter.post("/refresh-token", async (req, res) => {
     await db
       .delete(refreshTokensTable)
       .where(eq(refreshTokensTable.userId, decoded.id));
-    throw new BadRequestError("Unauthorized");
+    throw new NotAuthorizedError("Unauthorized");
   }
 
   const userToken = await db
@@ -261,7 +262,7 @@ authRouter.post("/refresh-token", async (req, res) => {
     await db
       .delete(refreshTokensTable)
       .where(eq(refreshTokensTable.userId, decoded.id));
-    throw new BadRequestError("Unauthorized");
+    throw new NotAuthorizedError("Unauthorized");
   }
   if (userToken.length > 0) {
     const accessToken = await generateJWT(

@@ -49,5 +49,34 @@ export const signupUserWithVerification = async (options?: {
     formData,
     statusCode: response.statusCode,
     responseBody: response.body,
+    response,
+  };
+};
+
+export const extractRefreshTokenFromCookie = (cookie: string) => {
+  const session = cookie?.split(";")[0].split("=")[1]!;
+  const refreshToken = JSON.parse(atob(session)).refreshToken;
+  return refreshToken;
+};
+
+export const signinUser = async (options?: {
+  email: string;
+  password: string;
+}) => {
+  const { email = "user@example.com", password = "USEr_@@852852" } =
+    options || {};
+  const response = await request(app)
+    .post("/api/auth/login")
+    .send({ email, password });
+
+  const refreshToken = extractRefreshTokenFromCookie(
+    response.get("Set-Cookie")?.[0]!
+  );
+
+  return {
+    user: response.body.user,
+    accessToken: response.body.accessToken,
+    refreshToken,
+    cookies: response.get("Set-Cookie"),
   };
 };
