@@ -1,12 +1,10 @@
 import "dotenv/config";
-import express from "express";
+import { app } from "./app";
 
-const app = express();
+const main = async () => {
+  app.listen(process.env.SERVER_PORT, () => {
+    console.log("Server is running...");
+  });
+};
 
-app.get("/", (req, res) => {
-  res.send("OK");
-});
-
-app.listen(8080, () => {
-  console.log("Server is running...");
-});
+main();
