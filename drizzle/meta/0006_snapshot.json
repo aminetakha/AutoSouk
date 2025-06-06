@@ -1,29 +1,18 @@
 {
-  "id": "f9bd67ec-1d23-49f3-8502-d32733f60562",
+  "id": "57f805fc-631b-404b-a776-46750fe4b3f2",
   "prevId": "6cba48b2-1a17-4670-b52d-a974afb7aeb7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.make": {
-      "name": "make",
+    "public.makes": {
+      "name": "makes",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "always",
-            "name": "make_id_seq",
-            "schema": "public",
-            "increment": "1",
-            "startWith": "1",
-            "minValue": "1",
-            "maxValue": "2147483647",
-            "cache": "1",
-            "cycle": false
-          }
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -54,26 +43,15 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.model": {
-      "name": "model",
+    "public.models": {
+      "name": "models",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "always",
-            "name": "model_id_seq",
-            "schema": "public",
-            "increment": "1",
-            "startWith": "1",
-            "minValue": "1",
-            "maxValue": "2147483647",
-            "cache": "1",
-            "cycle": false
-          }
+          "notNull": true
         },
         "make_id": {
           "name": "make_id",
@@ -104,10 +82,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "model_make_id_make_id_fk": {
-          "name": "model_make_id_make_id_fk",
-          "tableFrom": "model",
-          "tableTo": "make",
+        "models_make_id_makes_id_fk": {
+          "name": "models_make_id_makes_id_fk",
+          "tableFrom": "models",
+          "tableTo": "makes",
           "columnsFrom": [
             "make_id"
           ],
@@ -119,8 +97,8 @@
         },
         "make_fk": {
           "name": "make_fk",
-          "tableFrom": "model",
-          "tableTo": "make",
+          "tableFrom": "models",
+          "tableTo": "makes",
           "columnsFrom": [
             "make_id"
           ],

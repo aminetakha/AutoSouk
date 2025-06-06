@@ -6,9 +6,10 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { makeTable } from "./car_make";
+import { relations } from "drizzle-orm";
 
 export const carModelTable = pgTable(
-  "model",
+  "models",
   {
     id: integer().primaryKey(),
     makeId: integer("make_id")
@@ -26,3 +27,10 @@ export const carModelTable = pgTable(
     }).onDelete("cascade"),
   ]
 );
+
+export const carModelRelations = relations(carModelTable, ({ one }) => ({
+  make: one(makeTable, {
+    fields: [carModelTable.makeId],
+    references: [makeTable.id],
+  }),
+}));
