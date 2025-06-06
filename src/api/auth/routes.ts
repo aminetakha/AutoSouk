@@ -30,6 +30,7 @@ import {
 } from "./services";
 import { forgotPasswordTokensTable } from "../../db/schema/forget_password_tokens";
 import { NotAuthorizedError } from "../../errors/not-authorized-error";
+import isAuthenticated from "../../middlewares/is-authenticated";
 
 const tokenExpirationMinutes = 5;
 const authRouter = Router();
@@ -408,7 +409,7 @@ authRouter.put("/forgot-password", async (req, res) => {
   res.status(200).json({ message: "Your password was updated successfully" });
 });
 
-authRouter.put("/reset-password", async (req, res) => {
+authRouter.put("/reset-password", isAuthenticated, async (req, res) => {
   const validateResult = resetPasswordSchema.safeParse(req.body);
   if (!validateResult.success) {
     throw new RequestValidationError(validateResult.error.errors);
