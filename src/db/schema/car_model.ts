@@ -5,8 +5,9 @@ import {
   pgTable,
   varchar,
 } from "drizzle-orm/pg-core";
-import { makeTable } from "./car_make";
 import { relations } from "drizzle-orm";
+import { makeTable } from "./car_make";
+import { carTable } from "./car";
 
 export const carModelTable = pgTable(
   "models",
@@ -28,9 +29,10 @@ export const carModelTable = pgTable(
   ]
 );
 
-export const carModelRelations = relations(carModelTable, ({ one }) => ({
+export const carModelRelations = relations(carModelTable, ({ one, many }) => ({
   make: one(makeTable, {
     fields: [carModelTable.makeId],
     references: [makeTable.id],
   }),
+  cars: many(carTable),
 }));

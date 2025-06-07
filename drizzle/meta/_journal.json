@@ -50,6 +50,13 @@
       "when": 1749236394573,
       "tag": "0006_add_car_make_model_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1749321307932,
+      "tag": "0007_add_car_tables",
+      "breakpoints": true
     }
   ]
 }
