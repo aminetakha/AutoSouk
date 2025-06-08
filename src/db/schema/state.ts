@@ -4,7 +4,7 @@ import { carTable } from "./car";
 
 export const carStateTable = pgTable("car_states", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  state: varchar().notNull(),
+  state: varchar().notNull().unique(),
 });
 
 export const carStateRelations = relations(carStateTable, ({ many }) => ({

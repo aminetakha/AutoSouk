@@ -62,3 +62,13 @@ export const readTemplateFile = async (
   const html = ejs.render(template, data);
   return html;
 };
+
+export const readSeedFile = async (fileName: string) => {
+  const data = await fs.readFile(
+    path.join(__dirname, `../db/seeds/data/${fileName}.json`),
+    {
+      encoding: "utf8",
+    }
+  );
+  return data;
+};

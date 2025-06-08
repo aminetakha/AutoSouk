@@ -57,6 +57,20 @@
       "when": 1749321307932,
       "tag": "0007_add_car_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1749372890371,
+      "tag": "0008_modified_origin_constraint",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1749374429363,
+      "tag": "0009_modified_states_carburants_tables_constraint",
+      "breakpoints": true
     }
   ]
 }
